@@ -15,7 +15,7 @@
 // **********************************************************************//
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace DeskMetrics.Json
 {
@@ -27,7 +27,7 @@ namespace DeskMetrics.Json
 
         }
 
-        public override Hashtable GetJsonHashTable()
+        public override Dictionary<string, string> GetJsonHashTable()
         {
             return base.GetJsonHashTable(); 
         }

@@ -24,7 +24,7 @@ namespace DeskMetrics.Json
 {
     public class JsonBuilder
     {
-        public static string GetJsonFromHashTable(Hashtable hash)
+        public static string GetJsonFromHashTable(Dictionary<string,string> hash)
         {
             var json = Json.JsonEncode(hash);
             return json;   

@@ -40,21 +40,21 @@ namespace DeskMetrics.Json
         }
 
         protected int TimeStamp;
-        protected Hashtable json;
+        protected Dictionary<string, string> json;
 
         public BaseJson(string type,string session)
         {
             Session = session;
             Type = type;
             TimeStamp = Util.GetTimeStamp();
-            json = new Hashtable();
+            json = new Dictionary<string, string>();
         }
 
-        public virtual Hashtable GetJsonHashTable()
+        public virtual Dictionary<string,string> GetJsonHashTable()
         {
             json.Add("tp", Type);
             json.Add("ss", Session);
-            json.Add("ts", TimeStamp);
+            json.Add("ts", TimeStamp.ToString());
             return json;
         }
     }

@@ -14,7 +14,7 @@
 //                                                                       //
 // **********************************************************************//
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace DeskMetrics.Json
 {
@@ -31,10 +31,10 @@ namespace DeskMetrics.Json
 			Type = EventType.EventPeriod;
         }
 
-        public override Hashtable GetJsonHashTable()
+        public override Dictionary<string, string> GetJsonHashTable()
         {
             var json = base.GetJsonHashTable();
-            json.Add("tm", Time);
+            json.Add("tm", Time.ToString());
             json.Add("ec", Completed?"1":"0");
             return json;
         }

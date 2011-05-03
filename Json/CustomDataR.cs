@@ -15,7 +15,7 @@
 // **********************************************************************//
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace DeskMetrics.Json
 {
@@ -29,11 +29,11 @@ namespace DeskMetrics.Json
             AppVersion = app_version;
         }
 
-        public override Hashtable GetJsonHashTable()
+        public override Dictionary<string, string> GetJsonHashTable()
         {
             var json = base.GetJsonHashTable();
             json.Add("aver", AppVersion);
-            json.Add("ID", ID);
+            json.Add("ID", ID.ToString());
             return json;
         }
     }

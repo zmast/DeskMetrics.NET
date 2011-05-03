@@ -15,7 +15,7 @@
 // **********************************************************************//
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace DeskMetrics.Json
 {
@@ -30,7 +30,7 @@ namespace DeskMetrics.Json
             Value = value;
         }
 
-        public override Hashtable GetJsonHashTable()
+        public override Dictionary<string, string> GetJsonHashTable()
         {
             var json = base.GetJsonHashTable();
             json.Add("vl", Value);

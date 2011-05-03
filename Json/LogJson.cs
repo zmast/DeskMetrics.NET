@@ -14,7 +14,7 @@
 //                                                                       //
 // **********************************************************************//
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace DeskMetrics.Json
 {
@@ -29,11 +29,11 @@ namespace DeskMetrics.Json
             Flow = flow;
         }
 
-        public override Hashtable GetJsonHashTable()
+        public override Dictionary<string, string> GetJsonHashTable()
         {
             var json = base.GetJsonHashTable();
             json.Add("ms", Message);
-            json.Add("fl", Flow);
+            json.Add("fl", Flow.ToString());
             return json;
         }
     }
