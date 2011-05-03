@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+
 namespace DeskMetrics.Json
 {
 	public abstract class BaseJson

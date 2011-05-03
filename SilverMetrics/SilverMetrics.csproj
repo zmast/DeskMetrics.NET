@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CA943D46-875E-41BD-94B2-C0D54395E984}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SilverMetrics</RootNamespace>
+    <AssemblyName>SilverMetrics</AssemblyName>
+    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>false</SilverlightApplication>
+    <ValidateXaml>true</ValidateXaml>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+  </PropertyGroup>
+  <!-- This property group is only here to support building this project using the 
+       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Browser" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\Watcher\Cache.cs" />
+    <Compile Include="..\Watcher\EventType.cs" />
+    <Compile Include="..\Watcher\Services.cs" />
+    <Compile Include="..\Watcher\Util.cs" />
+    <Compile Include="..\Watcher\Watcher.cs" />
+    <Compile Include="..\Watcher\Settings.cs" />
+    <Compile Include="..\Watcher\CurrentUser.cs" />
+    <Compile Include="..\OperatingSystem\MacOSXOperatingSystem.cs" />
+    <Compile Include="..\OperatingSystem\OperatingSystemFactory.cs" />
+    <Compile Include="..\OperatingSystem\UnixOperatingSystem.cs" />
+    <Compile Include="..\OperatingSystem\WindowsOperatingSystem.cs" />
+    <Compile Include="..\Json\Json.cs" />
+    <Compile Include="..\Json\JsonBuilder.cs" />
+    <Compile Include="..\Json\BaseJson.cs" />
+    <Compile Include="..\Json\InstallJson.cs" />
+    <Compile Include="..\Json\UninstallJson.cs" />
+    <Compile Include="..\Json\StopAppJson.cs" />
+    <Compile Include="..\Json\EventJson.cs" />
+    <Compile Include="..\Json\EventValueJson.cs" />
+    <Compile Include="..\Json\LogJson.cs" />
+    <Compile Include="..\Json\CustomDataJson.cs" />
+    <Compile Include="..\Json\CustomDataR.cs" />
+    <Compile Include="..\Json\ExceptionJson.cs" />
+    <Compile Include="..\Json\StartAppJson.cs" />
+    <Compile Include="..\Json\EventPeriodJson.cs" />
+    <Compile Include="..\OperatingSystem\IOperatingSystem.cs" />
+    <Compile Include="..\OperatingSystem\Hardware\IHardware.cs" />
+    <Compile Include="..\OperatingSystem\Hardware\WindowsHardware.cs" />
+    <Compile Include="..\OperatingSystem\Hardware\UnixHardware.cs" />
+    <Compile Include="..\OperatingSystem\Hardware\MacOSXHadware.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
