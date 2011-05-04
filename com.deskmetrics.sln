@@ -69,7 +69,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = DeskMetricsTestConsole\DeskMetricsTestConsole.csproj
+		StartupItem = Application Example\componentNETapp\NETDeskMetricsExample.csproj
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = com.deskmetrics.vsmdi
