@@ -42,7 +42,7 @@ namespace DeskMetrics
         /// </summary>
         private object _userGUID;
 
-        public object UserGUID
+        internal object UserGUID
         {
             get {
                 if (_userGUID == null)
@@ -55,7 +55,7 @@ namespace DeskMetrics
         /// </summary>
         private object _sessionGUID;
 
-        public object SessionGUID
+        internal object SessionGUID
         {
             get {
                 if (_sessionGUID == null)
@@ -96,14 +96,14 @@ namespace DeskMetrics
 
         private bool _started = false;
 
-        public bool Started
+        internal bool Started
         {
             get { return _started; }
         }
 
         private bool _enabled = true;
 
-        public string ApplicationId
+        internal string ApplicationId
         {
             get
             {
@@ -116,7 +116,7 @@ namespace DeskMetrics
             }
         }
 
-        public string ApplicationVersion
+        internal string ApplicationVersion
         {
             get
             {
@@ -128,7 +128,7 @@ namespace DeskMetrics
             }
         }
 
-        public List<string> JSON
+        internal List<string> JSON
         {
             get
             {
@@ -142,7 +142,7 @@ namespace DeskMetrics
             }
         }
 
-        public string Error
+        internal string Error
         {
             get
             {
@@ -217,7 +217,7 @@ namespace DeskMetrics
 		
 		private CurrentUser _user;
 		
-		public CurrentUser User {
+		internal CurrentUser User {
 			get {
 				if (_user==null)
 					_user = new CurrentUser();

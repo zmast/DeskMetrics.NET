@@ -28,9 +28,6 @@ namespace DeskMetrics
 {
     public class Services
     {
-		
-		private bool _postwaitresponse = false;
-
         private string _proxyusername;
 
         private string _proxypassword;
@@ -38,18 +35,6 @@ namespace DeskMetrics
         private string _proxyhost;
 
         private Int32 _proxyport;
-		
-		public bool PostWaitResponse
-        {
-            get
-            {
-                return _postwaitresponse;
-            }
-            set
-            {
-                _postwaitresponse = value;
-            }
-        }
 
         public string ProxyHost
         {
@@ -100,7 +85,7 @@ namespace DeskMetrics
         }
 		
 		string _postserver = Settings.DefaultServer;
-		public string PostServer
+		internal string PostServer
         {
             get
             {
@@ -113,7 +98,7 @@ namespace DeskMetrics
         }
 		
 		int _postport = Settings.DefaultPort;
-        public int PostPort
+        internal int PostPort
         {
             get
             {
@@ -147,7 +132,7 @@ namespace DeskMetrics
 
         Thread SendDataThread;
 
-        public string PostData(string PostMode,string json)
+        internal string PostData(string PostMode,string json)
         {
             lock (ObjectLock)
             {
@@ -225,7 +210,7 @@ namespace DeskMetrics
         /// <summary>
         /// </summary>
         /// <param name="Log">json message</param>
-        public void SendData(string json)
+        internal void SendData(string json)
         {
             lock (ObjectLock)
             {
@@ -236,7 +221,7 @@ namespace DeskMetrics
         }
 
         private string _json;
-        public bool SendDataAsync(string json)
+        internal bool SendDataAsync(string json)
         {
             lock (ObjectLock)
             {
