@@ -112,11 +112,11 @@ namespace DeskMetrics
             set
             {
                 _applicationId = value;
-				Cache.ApplicationId = ApplicationId;
+                Cache.ApplicationId = ApplicationId;
             }
         }
 
-        internal string ApplicationVersion
+        public string ApplicationVersion
         {
             get
             {
@@ -128,7 +128,7 @@ namespace DeskMetrics
             }
         }
 
-        internal List<string> JSON
+        public List<string> JSON
         {
             get
             {
@@ -136,7 +136,7 @@ namespace DeskMetrics
                     _json = new List<string>();
                 return _json;
             }
-            set
+            private set
             {
                 _json = value;
             }
@@ -229,7 +229,7 @@ namespace DeskMetrics
 		internal void CheckApplicationCorrectness()
 		{
 			if (string.IsNullOrEmpty(ApplicationId.Trim()))
-				throw new Exception("You must specify an non-empty application ID");
+				throw new InvalidOperationException("You must specify an non-empty application ID");
 			else if (!Enabled)
 				throw new InvalidOperationException("The application is stopped");
 		}
@@ -340,10 +340,12 @@ namespace DeskMetrics
             lock (ObjectLock)
                 if (Started)
                 {
-					CheckApplicationCorrectness();
+                    CheckApplicationCorrectness();
                     var json = new EventJson(EventCategory, EventName, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+                else
+                    throw new InvalidOperationException("You must Start the application before call this method");
         }
 
 		/// <summary>
@@ -367,10 +369,12 @@ namespace DeskMetrics
             {
                 if (Started)
                 {
-					CheckApplicationCorrectness();
-                    var json = new EventPeriodJson(EventCategory, EventName, GetFlowNumber(), EventTime,Completed);
+                    CheckApplicationCorrectness();
+                    var json = new EventPeriodJson(EventCategory, EventName, GetFlowNumber(), EventTime, Completed);
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+                else
+                    throw new InvalidOperationException("You must Start the application before call this method");
             }
         }
 		
@@ -422,12 +426,16 @@ namespace DeskMetrics
         public void TrackException(Exception ApplicationException)
         {
             lock (ObjectLock)
-                if (Started && ApplicationException != null)
+                if (Started)
                 {
-					CheckApplicationCorrectness();
-                    var json = new ExceptionJson(ApplicationException,GetFlowNumber());
+                    if (ApplicationException == null)
+                        throw new NullReferenceException("The exception cannot be null");
+                    CheckApplicationCorrectness();
+                    var json = new ExceptionJson(ApplicationException, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+                else
+                    throw new InvalidOperationException("You must Start the application before call this method");
         }        
 
         /// <summary>
@@ -477,10 +485,12 @@ namespace DeskMetrics
             lock (ObjectLock)
                 if (Started)
                 {
-					CheckApplicationCorrectness();
+                    CheckApplicationCorrectness();
                     var json = new EventValueJson(EventCategory, EventName, EventValue, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+                else
+                    throw new InvalidOperationException("You must Start the application before call this method");
         }
 
         /// <summary>
@@ -497,10 +507,12 @@ namespace DeskMetrics
             lock (ObjectLock)
                 if (Started)
                 {
-					CheckApplicationCorrectness();
+                    CheckApplicationCorrectness();
                     var json = new CustomDataJson(CustomDataName, CustomDataValue, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+                else
+                    throw new InvalidOperationException("You must Start the application before call this method");
         }
 
         /// <summary>
@@ -516,9 +528,11 @@ namespace DeskMetrics
                 if (Started)
                 {
                     CheckApplicationCorrectness();
-                    var json = new LogJson(Message,GetFlowNumber());
+                    var json = new LogJson(Message, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+                else
+                    throw new InvalidOperationException("You must Start the application before call this method");
             }
         }
 
