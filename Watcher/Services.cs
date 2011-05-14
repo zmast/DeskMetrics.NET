@@ -26,7 +26,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace DeskMetrics
 {
-    public class Services
+    public class Services:IServices
     {
         private string _proxyusername;
 
@@ -132,7 +132,7 @@ namespace DeskMetrics
 
         Thread SendDataThread;
 
-        internal string PostData(string PostMode,string json)
+        public string PostData(string PostMode,string json)
         {
             lock (ObjectLock)
             {
@@ -221,7 +221,8 @@ namespace DeskMetrics
         }
 
         private string _json;
-        internal bool SendDataAsync(string json)
+
+        public bool SendDataAsync(string json)
         {
             lock (ObjectLock)
             {

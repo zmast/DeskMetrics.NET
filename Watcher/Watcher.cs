@@ -190,9 +190,9 @@ namespace DeskMetrics
 
         
 
-        private Services _services;
+        private IServices _services;
 
-        public Services Services
+        public IServices Services
         {
             get {
                 if (_services == null)
@@ -394,7 +394,7 @@ namespace DeskMetrics
                 var json = new InstallJson(version);
 				ApplicationId = appid;
                 _started = true;
-				Services.SendData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+				Services.PostData(Settings.ApiEndpoint,JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
             }
 		}
 		/// <summary>
@@ -413,7 +413,7 @@ namespace DeskMetrics
                 var json = new UninstallJson(version);
 				ApplicationId = appid;
                 _started = true;
-				Services.SendData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+				Services.PostData(Settings.ApiEndpoint,JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
             }
 		}
         
