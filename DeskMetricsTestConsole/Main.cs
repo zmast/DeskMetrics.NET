@@ -8,6 +8,7 @@ namespace DeskMetricsConsole
 		public static void Main (string[] args)
 		{
 			var watcher = new DeskMetrics.Watcher();
+            watcher.RealTime = true;
 			Console.Write("Starting...");
 			watcher.Start("4d47c012d9340b116a000000","0.1");
 			Console.WriteLine("[ok]");
