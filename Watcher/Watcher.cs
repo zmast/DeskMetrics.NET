@@ -216,6 +216,7 @@ namespace DeskMetrics
 		}
 		
 		private CurrentUser _user;
+        public bool RealTime = false;
 		
 		internal CurrentUser User {
 			get {
@@ -225,6 +226,15 @@ namespace DeskMetrics
 			}
 		}
 
+        public Watcher()
+        {
+            
+        }
+
+        public Watcher(IServices services)
+        {
+            _services = services;
+        }
 		
 		internal void CheckApplicationCorrectness()
 		{
@@ -259,7 +269,7 @@ namespace DeskMetrics
 		private void StartAppJson()
 		{
 			var startjson = new StartAppJson(this);
-			JSON.Add(JsonBuilder.GetJsonFromHashTable(startjson.GetJsonHashTable()));
+            SendOrCacheData(JsonBuilder.GetJsonFromHashTable(startjson.GetJsonHashTable()));
 		}
 
 		private void TryInitializeStop()
@@ -342,7 +352,7 @@ namespace DeskMetrics
                 {
                     CheckApplicationCorrectness();
                     var json = new EventJson(EventCategory, EventName, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    SendOrCacheData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
                 else
                     throw new InvalidOperationException("You must Start the application before call this method");
@@ -371,7 +381,7 @@ namespace DeskMetrics
                 {
                     CheckApplicationCorrectness();
                     var json = new EventPeriodJson(EventCategory, EventName, GetFlowNumber(), EventTime, Completed);
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    SendOrCacheData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
                 else
                     throw new InvalidOperationException("You must Start the application before call this method");
@@ -432,7 +442,7 @@ namespace DeskMetrics
                         throw new NullReferenceException("The exception cannot be null");
                     CheckApplicationCorrectness();
                     var json = new ExceptionJson(ApplicationException, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    SendOrCacheData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
                 else
                     throw new InvalidOperationException("You must Start the application before call this method");
@@ -487,7 +497,7 @@ namespace DeskMetrics
                 {
                     CheckApplicationCorrectness();
                     var json = new EventValueJson(EventCategory, EventName, EventValue, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    SendOrCacheData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
                 else
                     throw new InvalidOperationException("You must Start the application before call this method");
@@ -509,7 +519,7 @@ namespace DeskMetrics
                 {
                     CheckApplicationCorrectness();
                     var json = new CustomDataJson(CustomDataName, CustomDataValue, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    SendOrCacheData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
                 else
                     throw new InvalidOperationException("You must Start the application before call this method");
@@ -529,7 +539,7 @@ namespace DeskMetrics
                 {
                     CheckApplicationCorrectness();
                     var json = new LogJson(Message, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    SendOrCacheData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
                 else
                     throw new InvalidOperationException("You must Start the application before call this method");
@@ -593,6 +603,13 @@ namespace DeskMetrics
         {
             Services.SendDataAsync(JsonBuilder.GetJsonFromList(JSON));
             JSON.Clear();
+        }
+
+        private void SendOrCacheData(string json)
+        {
+            JSON.Add(json);
+            if (RealTime)
+                SendDataAsync();
         }
     } 
 }

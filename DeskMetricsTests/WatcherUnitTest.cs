@@ -14,7 +14,7 @@ namespace DeskMetricsTest
         [TestInitialize]
         public void setup()
         {
-            watcher = new Watcher();
+            watcher = new Watcher(new ServiceStub());
         }
 
         [TestMethod]
@@ -140,6 +140,24 @@ namespace DeskMetricsTest
         public void TrackException_WhenTheApplicationIsNotStarted_ItShouldThrowInvalidOperationException()
         {
             watcher.TrackException(new Exception("Oh noes!"));
+        }
+
+        [TestMethod]
+        public void SendOrCacheData_IfTheApplicationIsNotSetToRunInRealTime_ItShouldCacheTheJson()
+        {
+            watcher.RealTime = false;
+            watcher.Start("appid","appversion");
+            watcher.TrackEvent("some category", "some event");
+            Assert.AreEqual(watcher.JSON.Count, 2);
+        }
+
+        [TestMethod]
+        public void SendOrCacheData_IfTheApplicationIsSetToRunInRealTime_ItShouldNotCacheTheJson()
+        {
+            watcher.RealTime = true;
+            watcher.Start("appid", "appversion");
+            watcher.TrackEvent("some category", "some event");
+            Assert.AreEqual(watcher.JSON.Count, 0);
         }
     }
 }
