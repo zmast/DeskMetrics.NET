@@ -63,6 +63,7 @@ namespace DeskMetrics
                 Stream.Close();
                 FileS.Close();
             }
+            FileS.Dispose();
             return FileContents;
         }
 

@@ -98,7 +98,7 @@ namespace DeskMetrics
         }
 		
 		int _postport = Settings.DefaultPort;
-        internal int PostPort
+        public int PostPort
         {
             get
             {

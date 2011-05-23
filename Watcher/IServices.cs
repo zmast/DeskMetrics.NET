@@ -12,6 +12,7 @@ namespace DeskMetrics
         string ProxyHost { get; set; }
         string ProxyUserName { get; set; }
         string ProxyPassword { get; set; }
+        int PostPort { get; set; }
         Int32 ProxyPort { get; set; }
     }
 }
