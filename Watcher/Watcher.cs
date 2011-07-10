@@ -254,6 +254,7 @@ namespace DeskMetrics
                 if (Enabled)
             		StartAppJson();
 			_started = true;
+			SendDataAsync();
         }
 		
 		private void StartAppJson()
