@@ -98,7 +98,7 @@ namespace DeskMetrics
         }
 		
 		int _postport = Settings.DefaultPort;
-        internal int PostPort
+        public int PostPort
         {
             get
             {
@@ -123,7 +123,7 @@ namespace DeskMetrics
         }
 		
         private Watcher watcher;
-        public Services(Watcher watcher)
+        internal Services(Watcher watcher)
         {
             this.watcher = watcher;
         }
