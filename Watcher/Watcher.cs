@@ -356,12 +356,14 @@ namespace DeskMetrics
         public void TrackEvent(string EventCategory, string EventName)
         {
             lock (ObjectLock)
+            {
                 if (Started)
                 {
                     CheckApplicationCorrectness();
                     var json = new EventJson(EventCategory, EventName, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+            }
         }
 
         /// <summary>
@@ -454,12 +456,14 @@ namespace DeskMetrics
         public void TrackException(Exception ApplicationException)
         {
             lock (ObjectLock)
+            {
                 if (Started && ApplicationException != null)
                 {
                     CheckApplicationCorrectness();
                     var json = new ExceptionJson(ApplicationException, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+            }
         }
 
         /// <summary>
@@ -507,12 +511,14 @@ namespace DeskMetrics
         public void TrackEventValue(string EventCategory, string EventName, string EventValue)
         {
             lock (ObjectLock)
+            {
                 if (Started)
                 {
                     CheckApplicationCorrectness();
                     var json = new EventValueJson(EventCategory, EventName, EventValue, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+            }
         }
 
         /// <summary>
@@ -527,12 +533,14 @@ namespace DeskMetrics
         public void TrackCustomData(string CustomDataName, string CustomDataValue)
         {
             lock (ObjectLock)
+            {
                 if (Started)
                 {
                     CheckApplicationCorrectness();
                     var json = new CustomDataJson(CustomDataName, CustomDataValue, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
+            }
         }
 
         /// <summary>
@@ -575,9 +583,12 @@ namespace DeskMetrics
             }
             catch (Exception)
             {
-                var json = new CustomDataRJson(CustomDataName, CustomDataValue, GetFlowNumber(), ApplicationId, ApplicationVersion);
-                JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
-                return false;
+                lock (ObjectLock)
+                {
+                    var json = new CustomDataRJson(CustomDataName, CustomDataValue, GetFlowNumber(), ApplicationId, ApplicationVersion);
+                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    return false;
+                }
             }
             return true;
         }
@@ -609,8 +620,11 @@ namespace DeskMetrics
 
         public void SendDataAsync()
         {
-            Services.SendDataAsync(JsonBuilder.GetJsonFromList(JSON));
-            JSON.Clear();
+            lock (ObjectLock)
+            {
+                Services.SendDataAsync(JsonBuilder.GetJsonFromList(JSON));
+                JSON.Clear();
+            }
         }
     }
 }
