@@ -71,7 +71,7 @@ namespace DeskMetrics
                 _proxypassword = value;
             }
         }
- 
+
         public Int32 ProxyPort
         {
             get
@@ -83,9 +83,9 @@ namespace DeskMetrics
                 _proxyport = value;
             }
         }
-		
-		string _postserver = Settings.DefaultServer;
-		internal string PostServer
+
+        string _postserver = Settings.DefaultServer;
+        internal string PostServer
         {
             get
             {
@@ -96,8 +96,8 @@ namespace DeskMetrics
                 _postserver = value;
             }
         }
-		
-		int _postport = Settings.DefaultPort;
+
+        int _postport = Settings.DefaultPort;
         public int PostPort
         {
             get
@@ -110,18 +110,19 @@ namespace DeskMetrics
             }
         }
 
-		int _posttimeout = Settings.Timeout;
-        public int PostTimeOut{
+        int _posttimeout = Settings.Timeout;
+        public int PostTimeOut
+        {
             get
             {
                 return _posttimeout;
             }
-            set 
+            set
             {
                 _posttimeout = value;
             }
         }
-		
+
         private Watcher watcher;
         internal Services(Watcher watcher)
         {
@@ -132,11 +133,11 @@ namespace DeskMetrics
 
         Thread SendDataThread;
 
-        internal string PostData(string PostMode,string json)
+        internal string PostData(string PostMode, string json)
         {
             lock (ObjectLock)
             {
-				watcher.CheckApplicationCorrectness();
+                watcher.CheckApplicationCorrectness();
                 string url;
 
                 if (PostPort == 443)
@@ -166,7 +167,7 @@ namespace DeskMetrics
 
                     if (ProxyPort != 0)
                     {
-                        uri = ProxyHost + ":" + ProxyPort ;
+                        uri = ProxyHost + ":" + ProxyPort;
                     }
                     else
                     {
@@ -216,7 +217,7 @@ namespace DeskMetrics
             {
                 if (watcher.Started)
                     if (!string.IsNullOrEmpty(watcher.ApplicationId) && (watcher.Enabled == true))
-                        PostData(Settings.ApiEndpoint,json);
+                        PostData(Settings.ApiEndpoint, json);
             }
         }
 
@@ -262,7 +263,7 @@ namespace DeskMetrics
         private void _SendDataThreadFunc()
         {
             lock (ObjectLock)
-            	PostData(Settings.ApiEndpoint,_json);
+                PostData(Settings.ApiEndpoint, _json);
         }
     }
 }
