@@ -24,7 +24,8 @@ namespace DeskMetrics
     {
         internal string ApplicationId
         {
-            get;set;
+            get;
+            set;
         }
 
         private System.Object ObjectLock = new System.Object();
@@ -56,7 +57,7 @@ namespace DeskMetrics
             StreamReader Stream = new StreamReader(FileS);
             try
             {
-                FileContents =  Util.DecodeFrom64(Stream.ReadToEnd());
+                FileContents = Util.DecodeFrom64(Stream.ReadToEnd());
             }
             finally
             {
@@ -89,7 +90,7 @@ namespace DeskMetrics
             return FileS;
         }
 
-        internal void Save(List<string> JSON) 
+        internal void Save(List<string> JSON)
         {
             lock (ObjectLock)
             {
@@ -99,7 +100,7 @@ namespace DeskMetrics
                 if (FileS.Length == 0)
                     StreamFile.Write(Util.EncodeTo64(JsonBuilder.GetJsonFromList(JSON)));
                 else
-                    StreamFile.Write(","+Util.EncodeTo64(JsonBuilder.GetJsonFromList(JSON)),FileS.Length);
+                    StreamFile.Write("," + Util.EncodeTo64(JsonBuilder.GetJsonFromList(JSON)), FileS.Length);
                 StreamFile.Close();
                 FileS.Close();
             }

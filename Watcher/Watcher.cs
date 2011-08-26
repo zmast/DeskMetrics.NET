@@ -33,7 +33,7 @@ namespace DeskMetrics
 {
     public class Watcher : IDisposable
     {
-		#region attributes
+        #region attributes
         Thread StopThread;
         /// <summary>
         /// Thread Lock
@@ -47,10 +47,11 @@ namespace DeskMetrics
 
         internal object UserGUID
         {
-            get {
+            get
+            {
                 if (_userGUID == null)
                     _userGUID = User.GetID();
-                return _userGUID; 
+                return _userGUID;
             }
         }
         /// <summary>
@@ -60,7 +61,8 @@ namespace DeskMetrics
 
         internal object SessionGUID
         {
-            get {
+            get
+            {
                 if (string.IsNullOrEmpty(_sessionGUID))
                 {
                     _sessionGUID = User.GetSessionID();
@@ -114,7 +116,7 @@ namespace DeskMetrics
             set
             {
                 _applicationId = value;
-				Cache.ApplicationId = ApplicationId;
+                Cache.ApplicationId = ApplicationId;
             }
         }
 
@@ -203,143 +205,146 @@ namespace DeskMetrics
 
         public Services Services
         {
-            get {
+            get
+            {
                 if (_services == null)
                     _services = new Services(this);
-                return _services; 
+                return _services;
             }
             private set { _services = value; }
         }
 
-        
-		
-		private Cache _cache;
-		internal Cache Cache
-		{
-			get
-			{
-				if (_cache == null)
-					_cache = new Cache();
-				return _cache;
-			}
-		}
-		
-		private CurrentUser _user;
-		
-		internal CurrentUser User {
-			get {
-				if (_user==null)
-					_user = new CurrentUser();
-				return _user;
-			}
-		}
 
-		
-		internal void CheckApplicationCorrectness()
-		{
-			if (string.IsNullOrEmpty(ApplicationId.Trim()))
-				throw new Exception("You must specify an non-empty application ID");
-			else if (!Enabled)
-				throw new InvalidOperationException("The application is stopped or not enabled");
-		}
-		
-		#endregion
-		/// <summary>
-		/// Starts the application tracking.
-		/// </summary>
-		/// <param name="ApplicationId">
-		/// Your app ID. You can get it at http://analytics.deskmetrics.com/
-		/// </param>
-		/// <param name="ApplicationVersion">
-		/// Your app version.
-		/// </param>
+
+        private Cache _cache;
+        internal Cache Cache
+        {
+            get
+            {
+                if (_cache == null)
+                    _cache = new Cache();
+                return _cache;
+            }
+        }
+
+        private CurrentUser _user;
+
+        internal CurrentUser User
+        {
+            get
+            {
+                if (_user == null)
+                    _user = new CurrentUser();
+                return _user;
+            }
+        }
+
+
+        internal void CheckApplicationCorrectness()
+        {
+            if (string.IsNullOrEmpty(ApplicationId.Trim()))
+                throw new Exception("You must specify an non-empty application ID");
+            else if (!Enabled)
+                throw new InvalidOperationException("The application is stopped or not enabled");
+        }
+
+        #endregion
+        /// <summary>
+        /// Starts the application tracking.
+        /// </summary>
+        /// <param name="ApplicationId">
+        /// Your app ID. You can get it at http://analytics.deskmetrics.com/
+        /// </param>
+        /// <param name="ApplicationVersion">
+        /// Your app version.
+        /// </param>
         public void Start(string ApplicationId, string ApplicationVersion)
         {
-			this.ApplicationId = ApplicationId;
+            this.ApplicationId = ApplicationId;
             this.ApplicationVersion = ApplicationVersion;
-            
+
             _sessionGUID = null;
             Debug.WriteLine("ss: " + _sessionGUID);
 
             CheckApplicationCorrectness();
 
-			lock (ObjectLock)
+            lock (ObjectLock)
                 if (Enabled)
-            		StartAppJson();
-			_started = true;
-			//SendDataAsync();
+                    StartAppJson();
+            _started = true;
+            //SendDataAsync();
         }
-		
-		private void StartAppJson()
-		{
-			var startjson = new StartAppJson(this);
-			JSON.Add(JsonBuilder.GetJsonFromHashTable(startjson.GetJsonHashTable()));
-		}
 
-		private void TryInitializeStop()
-		{
-			if (StopThread == null)
-				StopThread = new Thread(_StopThreadFunc);
-		}
-		
-		private bool IsStopThreadInitialized()
-		{
-			return StopThread != null && !StopThread.IsAlive;
-		}
+        private void StartAppJson()
+        {
+            var startjson = new StartAppJson(this);
+            JSON.Add(JsonBuilder.GetJsonFromHashTable(startjson.GetJsonHashTable()));
+        }
 
-		private void RunStopThread()
-		{
-			StopThread = new Thread(_StopThreadFunc);
+        private void TryInitializeStop()
+        {
+            if (StopThread == null)
+                StopThread = new Thread(_StopThreadFunc);
+        }
+
+        private bool IsStopThreadInitialized()
+        {
+            return StopThread != null && !StopThread.IsAlive;
+        }
+
+        private void RunStopThread()
+        {
+            StopThread = new Thread(_StopThreadFunc);
             StopThread.Name = "StopSender";
             StopThread.Start();
-		}
-		
+        }
+
         /// <summary>
         /// Stops the application tracking and send the collected data to DeskMetrics
         /// </summary>
         public void Stop()
         {
-			CheckApplicationCorrectness();
+            CheckApplicationCorrectness();
             lock (ObjectLock)
             {
-            	TryInitializeStop();    
+                TryInitializeStop();
                 if (IsStopThreadInitialized())
-					RunStopThread();
+                    RunStopThread();
             }
         }
-		
-		private string GenerateStopJson()
-		{
-			var json = new StopAppJson();
+
+        private string GenerateStopJson()
+        {
+            var json = new StopAppJson();
             JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
             string SingleJSON = JsonBuilder.GetJsonFromList(JSON);
-			return SingleJSON;
-		}
-		
-		private string AppendCacheDataToJson(string json)
-		{
-			string CacheData = Cache.GetCacheData();
+            return SingleJSON;
+        }
+
+        private string AppendCacheDataToJson(string json)
+        {
+            string CacheData = Cache.GetCacheData();
             if (!string.IsNullOrEmpty(CacheData))
                 json = json + "," + CacheData;
-			return json;
-		}
+            return json;
+        }
 
         private void _StopThreadFunc()
         {
             lock (ObjectLock)
             {
-				CheckApplicationCorrectness();
+                CheckApplicationCorrectness();
                 JSON.Add(AppendCacheDataToJson(GenerateStopJson()));
-				try
-				{
-                	Services.PostData(Settings.ApiEndpoint,JsonBuilder.GetJsonFromList(JSON));
-					JSON.Clear();
-					Cache.Delete();
-				}
+                try
+                {
+                    Services.PostData(Settings.ApiEndpoint, JsonBuilder.GetJsonFromList(JSON));
+                    JSON.Clear();
+                    Cache.Delete();
+                }
                 catch (Exception e)
-				{
-					Cache.Save(JSON);
-				}
+                {
+                    Cache.Save(JSON);
+                }
             }
         }
 
@@ -353,55 +358,55 @@ namespace DeskMetrics
             lock (ObjectLock)
                 if (Started)
                 {
-					CheckApplicationCorrectness();
+                    CheckApplicationCorrectness();
                     var json = new EventJson(EventCategory, EventName, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
         }
 
-		/// <summary>
-		/// Tracks an event related to time and intervals
-		/// </summary>
-		/// <param name="EventCategory">
-		/// The event category
-		/// </param>
-		/// <param name="EventName">
-		/// The event name
-		/// </param>
-		/// <param name="EventTime">
-		/// The event duration 
-		/// </param>
-		/// <param name="Completed">
-		/// True if the event was completed.
-		/// </param>
-        public void TrackEventPeriod(string EventCategory, string EventName, int EventTime,bool Completed)
+        /// <summary>
+        /// Tracks an event related to time and intervals
+        /// </summary>
+        /// <param name="EventCategory">
+        /// The event category
+        /// </param>
+        /// <param name="EventName">
+        /// The event name
+        /// </param>
+        /// <param name="EventTime">
+        /// The event duration 
+        /// </param>
+        /// <param name="Completed">
+        /// True if the event was completed.
+        /// </param>
+        public void TrackEventPeriod(string EventCategory, string EventName, int EventTime, bool Completed)
         {
             lock (ObjectLock)
             {
                 if (Started)
                 {
-					CheckApplicationCorrectness();
-                    var json = new EventPeriodJson(EventCategory, EventName, GetFlowNumber(), EventTime,Completed);
+                    CheckApplicationCorrectness();
+                    var json = new EventPeriodJson(EventCategory, EventName, GetFlowNumber(), EventTime, Completed);
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
             }
         }
-		
-		/// <summary>
-		/// Tracks an installation
-		/// </summary>
-		/// <param name="version">
-		/// Your app version
-		/// </param>
-		/// <param name="appid">
-		/// Your app ID. You can get it at http://analytics.deskmetrics.com/
-		/// </param>
-		public void TrackInstall(string version,string appid)
-		{
-			lock (ObjectLock)
+
+        /// <summary>
+        /// Tracks an installation
+        /// </summary>
+        /// <param name="version">
+        /// Your app version
+        /// </param>
+        /// <param name="appid">
+        /// Your app ID. You can get it at http://analytics.deskmetrics.com/
+        /// </param>
+        public void TrackInstall(string version, string appid)
+        {
+            lock (ObjectLock)
             {
                 var json = new InstallJson(version);
-				ApplicationId = appid;
+                ApplicationId = appid;
                 _started = true;
                 try
                 {
@@ -412,22 +417,22 @@ namespace DeskMetrics
 
                 }
             }
-		}
-		/// <summary>
-		/// Tracks an uninstall
-		/// </summary>
-		/// <param name="version">
-		/// Your app version
-		/// </param>
-		/// <param name="appid">
-		/// Your app ID. You can get it at http://analytics.deskmetrics.com/
-		/// </param>
-		public void TrackUninstall(string version,string appid)
-		{
-			lock (ObjectLock)
+        }
+        /// <summary>
+        /// Tracks an uninstall
+        /// </summary>
+        /// <param name="version">
+        /// Your app version
+        /// </param>
+        /// <param name="appid">
+        /// Your app ID. You can get it at http://analytics.deskmetrics.com/
+        /// </param>
+        public void TrackUninstall(string version, string appid)
+        {
+            lock (ObjectLock)
             {
                 var json = new UninstallJson(version);
-				ApplicationId = appid;
+                ApplicationId = appid;
                 _started = true;
                 try
                 {
@@ -438,8 +443,8 @@ namespace DeskMetrics
 
                 }
             }
-		}
-        
+        }
+
         /// <summary>
         /// Tracks an exception
         /// </summary>
@@ -451,11 +456,11 @@ namespace DeskMetrics
             lock (ObjectLock)
                 if (Started && ApplicationException != null)
                 {
-					CheckApplicationCorrectness();
-                    var json = new ExceptionJson(ApplicationException,GetFlowNumber());
+                    CheckApplicationCorrectness();
+                    var json = new ExceptionJson(ApplicationException, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
-        }        
+        }
 
         /// <summary>
         /// </summary>
@@ -504,7 +509,7 @@ namespace DeskMetrics
             lock (ObjectLock)
                 if (Started)
                 {
-					CheckApplicationCorrectness();
+                    CheckApplicationCorrectness();
                     var json = new EventValueJson(EventCategory, EventName, EventValue, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
@@ -524,7 +529,7 @@ namespace DeskMetrics
             lock (ObjectLock)
                 if (Started)
                 {
-					CheckApplicationCorrectness();
+                    CheckApplicationCorrectness();
                     var json = new CustomDataJson(CustomDataName, CustomDataValue, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
@@ -543,59 +548,59 @@ namespace DeskMetrics
                 if (Started)
                 {
                     CheckApplicationCorrectness();
-                    var json = new LogJson(Message,GetFlowNumber());
+                    var json = new LogJson(Message, GetFlowNumber());
                     JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
             }
         }
 
-		
-		/// <summary>
-		/// Try to track real time customized data and caches it to send later if any network error occurs.
-		/// </summary>
-		/// <param name="CustomDataName">
-		/// A <see cref="System.String"/>
-		/// </param>
-		/// <param name="CustomDataValue">
-		/// A <see cref="System.String"/>
-		/// </param>
-		/// <returns>
-		/// True if it was sended in real time, false otherwise
-		/// </returns>
-		public bool TrackCachedCustomDataR(string CustomDataName, string CustomDataValue)
-		{
-			try
-			{
-				TrackCustomDataR(CustomDataName,CustomDataValue);
-			}
-			catch (Exception)
-            {
-				var json = new CustomDataRJson(CustomDataName, CustomDataValue, GetFlowNumber(), ApplicationId, ApplicationVersion);
-            	JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
-				return false;
-            }
-			return true;
-		}
 
-		/// <summary>
-		/// Tracks a custom data without cache support
-		/// </summary>
-		/// <param name="CustomDataName">
-		/// Self-explanatory ;)
-		/// </param>
-		/// <param name="CustomDataValue">
-		/// Self-explanatory ;)
-		/// </param>
-		/// <returns>
-		/// 
-		/// </returns>
+        /// <summary>
+        /// Try to track real time customized data and caches it to send later if any network error occurs.
+        /// </summary>
+        /// <param name="CustomDataName">
+        /// A <see cref="System.String"/>
+        /// </param>
+        /// <param name="CustomDataValue">
+        /// A <see cref="System.String"/>
+        /// </param>
+        /// <returns>
+        /// True if it was sended in real time, false otherwise
+        /// </returns>
+        public bool TrackCachedCustomDataR(string CustomDataName, string CustomDataValue)
+        {
+            try
+            {
+                TrackCustomDataR(CustomDataName, CustomDataValue);
+            }
+            catch (Exception)
+            {
+                var json = new CustomDataRJson(CustomDataName, CustomDataValue, GetFlowNumber(), ApplicationId, ApplicationVersion);
+                JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tracks a custom data without cache support
+        /// </summary>
+        /// <param name="CustomDataName">
+        /// Self-explanatory ;)
+        /// </param>
+        /// <param name="CustomDataValue">
+        /// Self-explanatory ;)
+        /// </param>
+        /// <returns>
+        /// 
+        /// </returns>
         public void TrackCustomDataR(string CustomDataName, string CustomDataValue)
         {
             lock (ObjectLock)
             {
                 if (Started)
                 {
-					CheckApplicationCorrectness();
+                    CheckApplicationCorrectness();
                     var json = new CustomDataRJson(CustomDataName, CustomDataValue, GetFlowNumber(), ApplicationId, ApplicationVersion);
                     Services.PostData(Settings.ApiEndpoint, JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
@@ -607,5 +612,5 @@ namespace DeskMetrics
             Services.SendDataAsync(JsonBuilder.GetJsonFromList(JSON));
             JSON.Clear();
         }
-    } 
+    }
 }

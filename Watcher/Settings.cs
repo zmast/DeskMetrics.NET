@@ -58,6 +58,6 @@ namespace DeskMetrics
           {"7","Could not read server response (InternetReadFile)"},
           {"8","Could not detect internet connection (InternetGetConnectedState)"},
           {"9","Bandwidth exceeded"}
-        };    
+        };
     }
 }
