@@ -21,7 +21,6 @@ namespace DeskMetrics.Json
 	public abstract class BaseJson
     {
         protected string Type;
-
         private static string _session;
         protected static string Session
         {
@@ -31,9 +30,9 @@ namespace DeskMetrics.Json
             }
             set
             {
-                //ensure that Session will be filled only once
-                if (string.IsNullOrEmpty(_session) && !string.IsNullOrEmpty(value))
-                    _session = value;
+            //    //ensure that Session will be filled only once
+            //    if (string.IsNullOrEmpty(_session) && !string.IsNullOrEmpty(value))
+                  _session = value;
             }
         }
 
@@ -42,8 +41,13 @@ namespace DeskMetrics.Json
 
         public BaseJson(string type,string session)
         {
-            Session = session;
             Type = type;
+
+            if (Type == "strApp") //StartApp
+                Session = System.Guid.NewGuid().ToString().Replace("-", "").ToUpper();
+            else
+                Session = session;
+
             TimeStamp = Util.GetTimeStamp();
             json = new Hashtable();
         }

@@ -3,6 +3,7 @@
 *.suo
 *.sln
 *.dll
+*.snk
 obj/
 obj/**
 bin/

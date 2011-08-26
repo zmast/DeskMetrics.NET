@@ -26,6 +26,9 @@ using System.Threading;
 using System.Security.Cryptography.X509Certificates;
 using DeskMetrics.Json;
 
+// delete if you arent using debug.writeline()
+using System.Diagnostics;
+
 namespace DeskMetrics
 {
     public class Watcher : IDisposable
@@ -53,18 +56,17 @@ namespace DeskMetrics
         /// <summary>
         /// Field Session Id
         /// </summary>
-        private object _sessionGUID;
+        private string _sessionGUID;
 
         internal object SessionGUID
         {
             get {
-                if (_sessionGUID == null)
+                if (string.IsNullOrEmpty(_sessionGUID))
                 {
                     _sessionGUID = User.GetSessionID();
                 }
                 return _sessionGUID;
             }
-            //private set { _sessionGUID = value; }
         }
         /// <summary>
         /// Field Json
@@ -188,7 +190,14 @@ namespace DeskMetrics
 
         }
 
-        
+        public string JSONData
+        {
+            get
+            {
+                return _json.ToString();
+            }
+
+        }
 
         private Services _services;
 
@@ -231,7 +240,7 @@ namespace DeskMetrics
 			if (string.IsNullOrEmpty(ApplicationId.Trim()))
 				throw new Exception("You must specify an non-empty application ID");
 			else if (!Enabled)
-				throw new InvalidOperationException("The application is stopped");
+				throw new InvalidOperationException("The application is stopped or not enabled");
 		}
 		
 		#endregion
@@ -248,13 +257,17 @@ namespace DeskMetrics
         {
 			this.ApplicationId = ApplicationId;
             this.ApplicationVersion = ApplicationVersion;
-			CheckApplicationCorrectness();
-			
+            
+            _sessionGUID = null;
+            Debug.WriteLine("ss: " + _sessionGUID);
+
+            CheckApplicationCorrectness();
+
 			lock (ObjectLock)
                 if (Enabled)
             		StartAppJson();
 			_started = true;
-			SendDataAsync();
+			//SendDataAsync();
         }
 		
 		private void StartAppJson()

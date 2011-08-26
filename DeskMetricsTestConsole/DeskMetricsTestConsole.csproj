@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -48,17 +48,14 @@
     <StartupObject>DeskMetricsConsole.MainClass</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DeskMetrics">
+      <HintPath>..\bin\Release\DeskMetrics.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DeskMetrics.csproj">
-      <Project>{BD0BA67E-77A2-4B6B-A9B6-4FFAE1609224}</Project>
-      <Name>DeskMetrics</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

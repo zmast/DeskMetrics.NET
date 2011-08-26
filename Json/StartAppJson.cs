@@ -24,7 +24,7 @@ namespace DeskMetrics.Json
 	public class StartAppJson:BaseJson
     {
         private Watcher Watcher;
-        public StartAppJson(Watcher w):base(EventType.StartApplication,w.SessionGUID.ToString())
+        public StartAppJson(Watcher w):base(EventType.StartApplication, "")
         {
             Watcher = w;
         }
