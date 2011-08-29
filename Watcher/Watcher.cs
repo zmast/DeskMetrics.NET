@@ -341,7 +341,7 @@ namespace DeskMetrics
                     JSON.Clear();
                     Cache.Delete();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Cache.Save(JSON);
                 }
@@ -414,9 +414,9 @@ namespace DeskMetrics
                 {
                     Services.SendData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
-                catch (Exception ex)
+                catch (WebException)
                 {
-
+                    // only hide unhandled exception due no internet connection
                 }
             }
         }
@@ -440,9 +440,9 @@ namespace DeskMetrics
                 {
                     Services.SendData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
-                catch (Exception ex)
+                catch (WebException)
                 {
-
+                    // only hide unhandled exception due no internet connection
                 }
             }
         }
@@ -612,8 +612,15 @@ namespace DeskMetrics
                 if (Started)
                 {
                     CheckApplicationCorrectness();
-                    var json = new CustomDataRJson(CustomDataName, CustomDataValue, GetFlowNumber(), ApplicationId, ApplicationVersion);
-                    Services.PostData(Settings.ApiEndpoint, JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    try
+                    {
+                        var json = new CustomDataRJson(CustomDataName, CustomDataValue, GetFlowNumber(), ApplicationId, ApplicationVersion);
+                        Services.PostData(Settings.ApiEndpoint, JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    }
+                    catch (WebException)
+                    {
+                        // only hide unhandled exception due no internet connection
+                    }
                 }
             }
         }
@@ -622,8 +629,14 @@ namespace DeskMetrics
         {
             lock (ObjectLock)
             {
-                Services.SendDataAsync(JsonBuilder.GetJsonFromList(JSON));
-                JSON.Clear();
+                try
+                {
+                    Services.SendDataAsync(JsonBuilder.GetJsonFromList(JSON));                    
+                }
+                catch (WebException)
+                {
+                    // only hide unhandled exception due no internet connection
+                }
             }
         }
     }

@@ -263,7 +263,17 @@ namespace DeskMetrics
         private void _SendDataThreadFunc()
         {
             lock (ObjectLock)
-                PostData(Settings.ApiEndpoint, _json);
+            {
+                try
+                {
+                    PostData(Settings.ApiEndpoint, _json);
+                    watcher.JSON.Clear();
+                }
+                catch (WebException)
+                {
+                    // only hide unhandled exception due no internet connection
+                }
+            }
         }
     }
 }
