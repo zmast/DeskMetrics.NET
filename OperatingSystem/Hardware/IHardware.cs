@@ -21,7 +21,7 @@ using System.Text;
 
 namespace DeskMetrics.OperatingSystem.Hardware
 {
-    public abstract class IHardware
+    abstract class IHardware
     {
         public abstract string ProcessorName { get; set; }
         public abstract int ProcessorArchicteture { get; set; }

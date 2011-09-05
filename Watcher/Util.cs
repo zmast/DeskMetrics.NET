@@ -19,52 +19,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Win32;
 
 namespace DeskMetrics
 {
-    internal class Util
+    static class Util
     {
-
-        /// <summary>
-        /// The method create a Base64 encoded string from a normal string.
-        /// </summary>
-        /// <param name="toEncode">The String containing the characters to encode.</param>
-        /// <returns>The Base64 encoded string.</returns>
-        public static string EncodeTo64(string toEncode)
-        {
-            try
-            {
-                byte[] toEncodeAsBytes = System.Text.Encoding.Unicode.GetBytes(toEncode);
-                string returnValue = System.Convert.ToBase64String(toEncodeAsBytes);
-                return returnValue;
-            }
-            catch
-            {
-                return "";
-            }
-
-        }
-
-        /// <summary>
-        /// The method to Decode your Base64 strings.
-        /// </summary>
-        /// <param name="encodedData">The String containing the characters to decode.</param>
-        /// <returns>A String containing the results of decoding the specified sequence of bytes.</returns>
-        public static string DecodeFrom64(string encodedData)
-        {
-            try
-            {
-                byte[] encodedDataAsBytes = System.Convert.FromBase64String(encodedData);
-                string returnValue = System.Text.Encoding.Unicode.GetString(encodedDataAsBytes);
-                return returnValue;
-            }
-            catch
-            {
-                return "";
-            }
-        }
-
-
         /// <summary>
         /// Timestamp GMT +0
         /// </summary>
@@ -82,7 +42,45 @@ namespace DeskMetrics
             {
                 return 0;
             }
-         
+        }
+
+        /// <summary>
+        /// Gets a new session ID
+        /// </summary>
+        /// <returns>A new sesion ID</returns>
+        public static string GetNewSessionID()
+        {
+            return GetNewID();
+        }
+
+        /// <summary>
+        /// Gets the current user ID
+        /// </summary>
+        /// <returns></returns>
+        public static string GetCurrentUserID()
+        {
+            string userID;
+
+            using (RegistryKey reg = Registry.CurrentUser.CreateSubKey("Software\\dskMetrics"))
+            {
+                userID = reg.GetValue("ID") as string;
+                if(userID == null)
+                {
+                    userID = GetNewID();
+                    reg.SetValue("ID", userID, RegistryValueKind.String);
+                }
+            }
+
+            return userID;
+        }
+
+        /// <summary>
+        /// Gets a new ID which can be used to uniquely identify a session or a user
+        /// </summary>
+        /// <returns></returns>
+        private static string GetNewID()
+        {
+            return System.Guid.NewGuid().ToString().Replace("-", "").ToUpper();
         }
     }
 }

@@ -19,7 +19,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 namespace DeskMetrics.OperatingSystem.Hardware
 {
-	public class UnixHardware:IHardware
+	class UnixHardware:IHardware
 	{
 		public UnixHardware ()
 		{

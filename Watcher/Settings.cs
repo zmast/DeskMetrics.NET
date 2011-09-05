@@ -30,7 +30,7 @@ namespace DeskMetrics
         public const string ApiEndpoint = "/sendData";
 
         public const int DefaultPort = 443;
-        public const int Timeout = 25000; // 20 seconds
+        public const int DefaultTimeout = 25000; // 25 seconds
 
         public static readonly Dictionary<string, string> ErrorCodes = new Dictionary<string, string> 
         { 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -20,10 +20,10 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>CODE_ANALYSIS;DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,13 +34,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>DeskMetrics.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -59,7 +60,6 @@
     <Compile Include="Watcher\Util.cs" />
     <Compile Include="Watcher\Watcher.cs" />
     <Compile Include="Watcher\Settings.cs" />
-    <Compile Include="Watcher\CurrentUser.cs" />
     <Compile Include="OperatingSystem\MacOSXOperatingSystem.cs" />
     <Compile Include="OperatingSystem\OperatingSystemFactory.cs" />
     <Compile Include="OperatingSystem\UnixOperatingSystem.cs" />
@@ -83,10 +83,6 @@
     <Compile Include="OperatingSystem\Hardware\WindowsHardware.cs" />
     <Compile Include="OperatingSystem\Hardware\UnixHardware.cs" />
     <Compile Include="OperatingSystem\Hardware\MacOSXHadware.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="DeskMetrics.snk" />
-    <None Include="DeskMetricsPublic.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

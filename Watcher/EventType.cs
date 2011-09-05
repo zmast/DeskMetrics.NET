@@ -21,7 +21,7 @@ using System.Text;
 
 namespace DeskMetrics
 {
-    public class EventType
+    class EventType
     {
         public const string StartApplication = "strApp";
         public const string StopApplication = "stApp";
@@ -32,5 +32,7 @@ namespace DeskMetrics
         public const string Exception = "exC";
         public const string EventValue = "evV";
         public const string EventPeriod = "evP";
+        public const string Install = "ist";
+        public const string Uninstall = "ust";
     }
 }

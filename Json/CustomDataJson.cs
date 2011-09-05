@@ -19,15 +19,16 @@ using System.Collections;
 
 namespace DeskMetrics.Json
 {
-    public class CustomDataJson : BaseJson
+    class CustomDataJson : BaseJson
     {
-        protected string Name;
-        protected string Value;
-        protected int Flow;
+        public string Name { get; private set; }
+        public string Value { get; private set; }
+        public int Flow { get; private set; }
 
-        public CustomDataJson(string name,string value, int flow)
-            : base(EventType.CustomData, BaseJson.Session)
+        public CustomDataJson(string session, string name, string value, int flow)
+            : base(session)
         {
+            Type = EventType.CustomData;
             Name = name;
             Value = value;
             Flow = flow;
@@ -41,7 +42,6 @@ namespace DeskMetrics.Json
             json.Add("fl", Flow);
             return json;
         }
-
     }
 }
 

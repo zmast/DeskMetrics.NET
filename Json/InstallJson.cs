@@ -19,26 +19,23 @@ using System.Collections;
 
 namespace DeskMetrics.Json
 {
-	public class InstallJson: BaseJson
+	class InstallJson: BaseJson
 	{
-		public string ID;
-		public string Version;
+        public string Version { get; private set; }
+        public int Flow { get; private set; }
 		
-		public InstallJson(string version)
-			:base("ist",BaseJson.Session)
+		public InstallJson(string session, string version, int flow)
+            : base(session)
 		{
-			ID = System.Guid.NewGuid().ToString().Replace("-", "").ToUpper();
+            Type = EventType.Install;
 			Version = version;
-            if (BaseJson.Session == null)
-            {
-                BaseJson.Session = System.Guid.NewGuid().ToString().Replace("-", "").ToUpper();
-            }
+            Flow = flow;
 		}
 		
 		public override Hashtable GetJsonHashTable ()
 		{
 			var json = base.GetJsonHashTable();
-			json.Add("ID",ID);
+			json.Add("fl",Flow);
 			json.Add("aver",Version);
 			return json;
 		}

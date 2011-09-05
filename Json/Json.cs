@@ -29,7 +29,7 @@ namespace DeskMetrics.Json
     /// Json uses Arrays and Objects. These correspond here to the datatypes ArrayList and Hashtable.
     /// All numbers are parsed to doubles.
     /// </summary>
-    public class Json
+    class Json
     {
         public const int TOKEN_NONE = 0;
         public const int TOKEN_CURLY_OPEN = 1;

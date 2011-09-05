@@ -18,13 +18,15 @@ using System.Collections;
 
 namespace DeskMetrics.Json
 {
-	public class LogJson : BaseJson
+	class LogJson : BaseJson
     {
-        protected string Message;
-        protected int Flow;
-        public LogJson(string msg,int flow)
-            : base(EventType.Log, BaseJson.Session)
+        public string Message { get; private set; }
+        public int Flow { get; private set; }
+
+        public LogJson(string session, string msg, int flow)
+            : base(session)
         {
+            Type = EventType.Log;
             Message = msg;
             Flow = flow;
         }

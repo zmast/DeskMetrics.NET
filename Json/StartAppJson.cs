@@ -21,37 +21,42 @@ using DeskMetrics.OperatingSystem.Hardware;
 
 namespace DeskMetrics.Json
 {
-	public class StartAppJson:BaseJson
+	class StartAppJson : BaseJson
     {
-        private Watcher Watcher;
-        public StartAppJson(Watcher w):base(EventType.StartApplication, "")
+        public string AppVersion { get; private set; }
+        public string UserGuid { get; private set; }
+
+        public StartAppJson(string session, string applicationVersion, string userGuid)
+            :base(session)
         {
-            Watcher = w;
+            Type = EventType.StartApplication;
+            AppVersion = applicationVersion;
+            UserGuid = userGuid;
         }
 
         public override Hashtable GetJsonHashTable()
         {
-            IOperatingSystem GetOsInfo = OperatingSystemFactory.GetOperatingSystem();
-            IHardware GetHardwareInfo = GetOsInfo.Hardware;
+            IOperatingSystem osInfo = OperatingSystemFactory.GetOperatingSystem();
+            IHardware hardwareInfo = osInfo.Hardware;
             var json = base.GetJsonHashTable();
 			
-            json.Add("aver",Watcher.ApplicationVersion);
-            json.Add("ID", Watcher.UserGUID);
-            json.Add("osv", GetOsInfo.Version);
-            json.Add("ossp", GetOsInfo.ServicePack);
-            json.Add("osar", GetOsInfo.Architecture);
-            json.Add("osjv", GetOsInfo.JavaVersion);
-            json.Add("osnet", GetOsInfo.FrameworkVersion);
-            json.Add("osnsp", GetOsInfo.FrameworkServicePack);
-            json.Add("oslng", GetOsInfo.Lcid);
-            json.Add("osscn", GetHardwareInfo.ScreenResolution);
-            json.Add("cnm", GetHardwareInfo.ProcessorName);
-			json.Add("car", GetHardwareInfo.ProcessorArchicteture);
-            json.Add("cbr", GetHardwareInfo.ProcessorBrand);
-            json.Add("cfr", GetHardwareInfo.ProcessorFrequency);
-            json.Add("ccr", GetHardwareInfo.ProcessorCores);
-            json.Add("mtt", GetHardwareInfo.MemoryTotal);
-            json.Add("mfr", GetHardwareInfo.MemoryFree);
+            json.Add("aver", AppVersion);
+            json.Add("ID", UserGuid);
+            json.Add("osv", osInfo.Version);
+            json.Add("ossp", osInfo.ServicePack);
+            json.Add("osar", osInfo.Architecture);
+            json.Add("osjv", osInfo.JavaVersion);
+            json.Add("osnet", osInfo.FrameworkVersion);
+            json.Add("osnsp", osInfo.FrameworkServicePack);
+            json.Add("oslng", osInfo.Lcid);
+            json.Add("osscn", hardwareInfo.ScreenResolution);
+            json.Add("cnm", hardwareInfo.ProcessorName);
+			json.Add("car", hardwareInfo.ProcessorArchicteture);
+            json.Add("cbr", hardwareInfo.ProcessorBrand);
+            json.Add("cfr", hardwareInfo.ProcessorFrequency);
+            json.Add("ccr", hardwareInfo.ProcessorCores);
+            json.Add("mtt", hardwareInfo.MemoryTotal);
+            json.Add("mfr", hardwareInfo.MemoryFree);
             json.Add("dtt", "null");
             json.Add("dfr", "null");
             return json;

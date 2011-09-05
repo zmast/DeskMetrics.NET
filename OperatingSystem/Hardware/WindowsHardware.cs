@@ -23,10 +23,9 @@ using System.IO;
 
 namespace DeskMetrics.OperatingSystem.Hardware
 {
-	public class WindowsHardware:IHardware
+	class WindowsHardware:IHardware
 	{
-
-		        /// <summary>
+		/// <summary>
         /// Field Processor Name
         /// </summary>
         private string _processorName;

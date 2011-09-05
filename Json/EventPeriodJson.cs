@@ -18,17 +18,17 @@ using System.Collections;
 
 namespace DeskMetrics.Json
 {
-	public class EventPeriodJson : EventJson
+	class EventPeriodJson : EventJson
     {
-        protected int Time;
-        protected bool Completed;
+        public int Time { get; private set; }
+        public bool Completed { get; private set; }
 
-        public EventPeriodJson(string category, string name, int flow,int time,bool completed)
-            : base(category, name, flow)
+        public EventPeriodJson(string session, string category, string name, int flow, int time, bool completed)
+            : base(session, category, name, flow)
         {
+            Type = EventType.EventPeriod;
             Time = time;
             Completed = completed;
-			Type = EventType.EventPeriod;
         }
 
         public override Hashtable GetJsonHashTable()

@@ -23,256 +23,127 @@ using System.Collections;
 using System.Net.Security;
 using System.Threading;
 using System.Security.Cryptography.X509Certificates;
+using System.Diagnostics;
 
 namespace DeskMetrics
 {
     public class Services
     {
-        private string _proxyusername;
-
-        private string _proxypassword;
-
-        private string _proxyhost;
-
-        private Int32 _proxyport;
-
-        public string ProxyHost
-        {
-            get
-            {
-                return _proxyhost;
-            }
-            set
-            {
-                _proxyhost = value;
-            }
-        }
-
-        public string ProxyUserName
-        {
-            get
-            {
-                return _proxyusername;
-            }
-            set
-            {
-                _proxyusername = value;
-            }
-        }
-
-        public string ProxyPassword
-        {
-            get
-            {
-                return _proxypassword;
-            }
-            set
-            {
-                _proxypassword = value;
-            }
-        }
-
-        public Int32 ProxyPort
-        {
-            get
-            {
-                return _proxyport;
-            }
-            set
-            {
-                _proxyport = value;
-            }
-        }
-
-        string _postserver = Settings.DefaultServer;
-        internal string PostServer
-        {
-            get
-            {
-                return _postserver;
-            }
-            set
-            {
-                _postserver = value;
-            }
-        }
-
-        int _postport = Settings.DefaultPort;
-        public int PostPort
-        {
-            get
-            {
-                return _postport;
-            }
-            set
-            {
-                _postport = value;
-            }
-        }
-
-        int _posttimeout = Settings.Timeout;
-        public int PostTimeOut
-        {
-            get
-            {
-                return _posttimeout;
-            }
-            set
-            {
-                _posttimeout = value;
-            }
-        }
-
-        private Watcher watcher;
-        internal Services(Watcher watcher)
-        {
-            this.watcher = watcher;
-        }
-
-        protected object ObjectLock = new Object();
-
-        Thread SendDataThread;
-
-        internal string PostData(string PostMode, string json)
-        {
-            lock (ObjectLock)
-            {
-                watcher.CheckApplicationCorrectness();
-                string url;
-
-                if (PostPort == 443)
-                {
-                    System.Net.ServicePointManager.ServerCertificateValidationCallback +=
-                        delegate(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors sslError)
-                        {
-                            bool validationResult = true;
-                            return validationResult;
-                        };
-
-                    url = "https://" + watcher.ApplicationId + "." + Settings.DefaultServer + PostMode;
-                }
-                else
-                {
-                    url = "http://" + watcher.ApplicationId + "." + Settings.DefaultServer + PostMode;
-                }
-
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Timeout = Settings.Timeout;
-
-                if (!string.IsNullOrEmpty(ProxyHost))
-                {
-                    string uri;
-
-                    WebProxy myProxy = new WebProxy();
-
-                    if (ProxyPort != 0)
-                    {
-                        uri = ProxyHost + ":" + ProxyPort;
-                    }
-                    else
-                    {
-                        uri = ProxyHost;
-                    }
-
-                    Uri newUri = new Uri(uri);
-                    myProxy.Address = newUri;
-                    myProxy.Credentials = new NetworkCredential(ProxyUserName, ProxyPassword);
-                    request.Proxy = myProxy;
-                }
-                else
-                {
-                    request.Proxy = WebRequest.DefaultWebProxy;
-                }
-
-                request.UserAgent = Settings.UserAgent;
-                request.KeepAlive = false;
-                request.ProtocolVersion = HttpVersion.Version10;
-                request.Method = "POST";
-
-                byte[] postBytes = null;
-
-                postBytes = Encoding.UTF8.GetBytes("data=[" + json + "]");
-
-                request.ContentType = "application/x-www-form-urlencoded";
-                request.ContentLength = postBytes.Length;
-
-                Stream requestStream = request.GetRequestStream();
-                requestStream.Write(postBytes, 0, postBytes.Length);
-                requestStream.Close();
-
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                StreamReader streamreader = new StreamReader(response.GetResponseStream());
-                Console.WriteLine(streamreader.ReadToEnd());
-                streamreader.Close();
-                return "";
-            }
-        }
+        /// <summary>
+        /// The proxy host
+        /// </summary>
+        public string ProxyHost { get; set; }
 
         /// <summary>
+        /// The proxy username
         /// </summary>
-        /// <param name="Log">json message</param>
-        internal void SendData(string json)
+        public string ProxyUserName { get; set; }
+
+        /// <summary>
+        /// The proxy password
+        /// </summary>
+        public string ProxyPassword { get; set; }
+
+        /// <summary>
+        /// The proxy port
+        /// </summary>
+        public int ProxyPort { get; set; }
+
+        /// <summary>
+        /// The server to post data to
+        /// </summary>
+        public string PostServer { get; set; }
+        
+        /// <summary>
+        /// The server port to post data to
+        /// </summary>
+        public int PostPort { get; set; }
+
+        /// <summary>
+        /// The data post timeout (in milliseconds)
+        /// </summary>
+        public int PostTimeOut { get; set; }
+        
+
+        /// <summary>
+        /// Main constructor
+        /// </summary>
+        internal Services()
         {
-            lock (ObjectLock)
-            {
-                if (watcher.Started)
-                    if (!string.IsNullOrEmpty(watcher.ApplicationId) && (watcher.Enabled == true))
-                        PostData(Settings.ApiEndpoint, json);
-            }
+            PostServer = Settings.DefaultServer;
+            PostPort = Settings.DefaultPort;
+            PostTimeOut = Settings.DefaultTimeout;
         }
-
-        private string _json;
-        internal bool SendDataAsync(string json)
+        
+        /// <summary>
+        /// Posts a json request to the webservice
+        /// </summary>
+        /// <param name="endpoint">The webservice endpoint</param>
+        /// <param name="json">the json data array content (excluded the [ ])</param>
+        internal void PostData(string applicationId, string json)
         {
-            lock (ObjectLock)
-            {
-                try
-                {
-                    if (!string.IsNullOrEmpty(watcher.ApplicationId) && (watcher.Enabled == true))
-                    {
-                        _json = json;
-                        if (SendDataThread == null)
-                        {
-                            SendDataThread = new Thread(_SendDataThreadFunc);
-                        }
+            string url;
 
-                        if ((SendDataThread != null) && (SendDataThread.IsAlive == false))
-                        {
-                            SendDataThread = new Thread(_SendDataThreadFunc);
-                            SendDataThread.Name = "SendDataSender";
-                            SendDataThread.Start();
-                            return true;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-                    else
+            if (PostPort == 443)
+            {
+                System.Net.ServicePointManager.ServerCertificateValidationCallback +=
+                    delegate(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors sslError)
                     {
-                        return false;
-                    }
-                }
-                catch
-                {
-                    return false;
-                }
+                        bool validationResult = true;
+                        return validationResult;
+                    };
+
+                url = "https://" + applicationId + "." + PostServer + Settings.ApiEndpoint;
             }
-        }
-
-        private void _SendDataThreadFunc()
-        {
-            lock (ObjectLock)
+            else
             {
-                try
-                {
-                    PostData(Settings.ApiEndpoint, _json);
-                    watcher.JSON.Clear();
-                }
-                catch (WebException)
-                {
-                    // only hide unhandled exception due no internet connection
-                }
+                url = "http://" + applicationId + "." + PostServer + Settings.ApiEndpoint;
+            }
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Timeout = PostTimeOut;
+
+            if (!string.IsNullOrEmpty(ProxyHost))
+            {
+                string uri;
+
+                WebProxy myProxy = new WebProxy();
+
+                if (ProxyPort != 0)
+                    uri = ProxyHost + ":" + ProxyPort;
+                else
+                    uri = ProxyHost;
+
+                myProxy.Address = new Uri(uri);
+                myProxy.Credentials = new NetworkCredential(ProxyUserName, ProxyPassword);
+                request.Proxy = myProxy;
+            }
+            else
+            {
+                request.Proxy = WebRequest.DefaultWebProxy;
+            }
+
+            request.UserAgent = Settings.UserAgent;
+            request.KeepAlive = false;
+            request.ProtocolVersion = HttpVersion.Version10;
+            request.Method = "POST";
+
+            byte[] postBytes = Encoding.UTF8.GetBytes("data=[" + json + "]");
+
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.ContentLength = postBytes.Length;
+
+            using (Stream requestStream = request.GetRequestStream())
+            {
+                requestStream.Write(postBytes, 0, postBytes.Length);
+            }
+
+            WebResponse response = request.GetResponse();
+            Stream responseStream = response.GetResponseStream();
+            using (StreamReader streamReader = new StreamReader(responseStream))
+            {
+                string responseText = streamReader.ReadToEnd();
+                Debug.WriteLine(responseText);
             }
         }
     }

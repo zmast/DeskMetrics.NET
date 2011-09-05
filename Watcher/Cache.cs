@@ -20,89 +20,60 @@ using DeskMetrics.Json;
 
 namespace DeskMetrics
 {
-    public class Cache
+    class Cache
     {
-        internal string ApplicationId
+        private object _objectLock = new object();
+        private string _filename;
+
+        public Cache(string applicationId)
         {
-            get;
-            set;
+            _filename = Path.GetTempPath() + applicationId + ".dsmk";
         }
-
-        private System.Object ObjectLock = new System.Object();
-
-
-        internal bool Delete()
+        
+        public bool Delete()
         {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
-                string FileName = Path.GetTempPath() + ApplicationId + ".dsmk";
-                if (File.Exists(FileName))
+                if (File.Exists(_filename))
                 {
-                    File.Delete(FileName);
+                    File.Delete(_filename);
                     return true;
                 }
                 return false;
             }
         }
 
-        private string FileName()
+        public string GetCacheData()
         {
-            return Path.GetTempPath() + ApplicationId + ".dsmk";
-        }
-
-        private string GetFileContents(string FileName)
-        {
-            string FileContents = "";
-            FileStream FileS = new FileStream(@FileName, FileMode.Open, FileAccess.Read);
-            StreamReader Stream = new StreamReader(FileS);
-            try
+            lock (_objectLock)
             {
-                FileContents = Util.DecodeFrom64(Stream.ReadToEnd());
-            }
-            finally
-            {
-                Stream.Close();
-                FileS.Close();
-            }
-            return FileContents;
-        }
+                if (File.Exists(_filename) == false)
+                    return null;
 
-        internal string GetCacheData()
-        {
-            lock (ObjectLock)
-            {
-                string FileName = this.FileName();
+                string fileContents;
+                try
+                {
+                    fileContents = File.ReadAllText(_filename);
+                }
+                catch
+                {
+                    fileContents = null;
+                }
 
-                if (File.Exists(FileName))
-                    return GetFileContents(FileName);
-                return "";
+                return fileContents;
             }
         }
-        private Int64 GetCacheSize()
-        {
-            return GetCacheData().Length;
-        }
 
-        private FileStream GetOrCreateCacheFile(string FileName)
+        public void Save(string data)
         {
-            FileStream FileS = new FileStream(@FileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            File.SetAttributes(FileName, FileAttributes.Hidden);
-            return FileS;
-        }
-
-        internal void Save(List<string> JSON)
-        {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
-                string FileName = this.FileName();
-                FileStream FileS = GetOrCreateCacheFile(FileName);
-                StreamWriter StreamFile = new StreamWriter(FileS);
-                if (FileS.Length == 0)
-                    StreamFile.Write(Util.EncodeTo64(JsonBuilder.GetJsonFromList(JSON)));
-                else
-                    StreamFile.Write("," + Util.EncodeTo64(JsonBuilder.GetJsonFromList(JSON)), FileS.Length);
-                StreamFile.Close();
-                FileS.Close();
+                try
+                {
+                    File.WriteAllText(_filename, data);
+                    File.SetAttributes(_filename, FileAttributes.Hidden);
+                }
+                catch { }
             }
         }
     }

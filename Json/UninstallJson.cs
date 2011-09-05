@@ -19,28 +19,25 @@ using System.Collections;
 
 namespace DeskMetrics.Json
 {
-	public class UninstallJson: BaseJson
+	class UninstallJson: BaseJson
 	{
-		public string ID;
-		public string Version;
+        public string Version { get; private set; }
+        public int Flow { get; private set; }
 		
-		public UninstallJson(string version)
-			:base("ust",BaseJson.Session)
+		public UninstallJson(string session, string version, int flow) : base(session)
 		{
-			ID = System.Guid.NewGuid().ToString().Replace("-", "").ToUpper();
+            Type = EventType.Uninstall;
 			Version = version;
-            if (BaseJson.Session == null)
-            {
-                BaseJson.Session = System.Guid.NewGuid().ToString().Replace("-", "").ToUpper();
-            }
-		}
+            Flow = flow;
+        }
 		
 		public override Hashtable GetJsonHashTable ()
 		{
 			var json = base.GetJsonHashTable();
-			json.Add("ID",ID);
+			json.Add("fl",Flow);
 			json.Add("aver",Version);
 			return json;
 		}
-	}}
+	}
+}
 

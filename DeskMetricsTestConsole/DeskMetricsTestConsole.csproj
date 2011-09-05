@@ -48,9 +48,6 @@
     <StartupObject>DeskMetricsConsole.MainClass</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DeskMetrics">
-      <HintPath>..\bin\Release\DeskMetrics.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
@@ -73,6 +70,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DeskMetrics.csproj">
+      <Project>{BD0BA67E-77A2-4B6B-A9B6-4FFAE1609224}</Project>
+      <Name>DeskMetrics</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

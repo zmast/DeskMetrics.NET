@@ -19,14 +19,17 @@ using System.Collections;
 
 namespace DeskMetrics.Json
 {
-	public class CustomDataRJson : CustomDataJson
+	class CustomDataRJson : CustomDataJson
     {
-        protected string ID;
-        protected string  AppVersion;
-        public CustomDataRJson(string name, string value, int flow, string ID, string app_version):base(name,value,flow)
+        public string ID { get; private set; }
+        public string AppVersion { get; private set; }
+
+        public CustomDataRJson(string session, string name, string value, int flow, string id, string appVersion)
+            : base(session, name, value, flow)
         {
-            this.ID = ID;
-            AppVersion = app_version;
+            Type = EventType.CustomDataR;
+            ID = id;
+            AppVersion = appVersion;
         }
 
         public override Hashtable GetJsonHashTable()

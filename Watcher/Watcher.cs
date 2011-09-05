@@ -26,277 +26,146 @@ using System.Threading;
 using System.Security.Cryptography.X509Certificates;
 using DeskMetrics.Json;
 
-// delete if you arent using debug.writeline()
-using System.Diagnostics;
 
 namespace DeskMetrics
 {
     public class Watcher : IDisposable
     {
-        #region attributes
-        Thread StopThread;
+        /// <summary>
+        /// Thread which sends data when closing the application
+        /// </summary>
+        private Thread _stopThread;
+
         /// <summary>
         /// Thread Lock
         /// </summary>
-        private System.Object ObjectLock = new System.Object();
+        private object _objectLock;
 
         /// <summary>
-        /// Field User GUID
-        /// </summary>
-        private object _userGUID;
-
-        internal object UserGUID
-        {
-            get
-            {
-                if (_userGUID == null)
-                    _userGUID = User.GetID();
-                return _userGUID;
-            }
-        }
-        /// <summary>
-        /// Field Session Id
+        /// Session GUID
         /// </summary>
         private string _sessionGUID;
 
-        internal object SessionGUID
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_sessionGUID))
-                {
-                    _sessionGUID = User.GetSessionID();
-                }
-                return _sessionGUID;
-            }
-        }
         /// <summary>
-        /// Field Json
+        /// User GUID
+        /// </summary>
+        private string _userGUID;
+
+        /// <summary>
+        /// Json list of data to send to webservice
         /// </summary>
         private List<string> _json;
+
         /// <summary>
-        /// Field Application Id
+        /// Application Id
         /// </summary>
         private string _applicationId;
-        /// <summary>
-        /// Field Error Message
-        /// </summary>
-        private string _error;
 
         /// <summary>
-        /// Field ApplicationVersion
+        /// Application version
         /// </summary>
         private string _applicationVersion;
+
         /// <summary>
-        /// Field Component Name
+        /// Flow number
         /// </summary>
-        private string _componentName;
+        private int _flowNumber;
+
         /// <summary>
-        /// Field Component Version
+        /// Persistent cache where the component stores the data that could not be sent (i.e. because there was no internet connection)
         /// </summary>
-        private string _componentVersion;
+        private Cache _cache;
 
-        private int _flowglobalnumber = 0;
+        /// <summary>
+        /// Indicates if the component has ben started.
+        /// </summary>
+        public bool Started { get; private set; }
 
-        private bool _started = false;
+        /// <summary>
+        /// Indicates if the component is enabled. If set to false, no method can be called.
+        /// </summary>
+        public bool Enabled { get; set; }
 
-        internal bool Started
-        {
-            get { return _started; }
-        }
-
-        private bool _enabled = true;
-
-        internal string ApplicationId
-        {
-            get
-            {
-                return _applicationId;
-            }
-            set
-            {
-                _applicationId = value;
-                Cache.ApplicationId = ApplicationId;
-            }
-        }
-
-        internal string ApplicationVersion
-        {
-            get
-            {
-                return _applicationVersion;
-            }
-            set
-            {
-                _applicationVersion = value;
-            }
-        }
-
-        internal List<string> JSON
-        {
-            get
-            {
-                if (_json == null)
-                    _json = new List<string>();
-                return _json;
-            }
-            set
-            {
-                _json = value;
-            }
-        }
-
-        internal string Error
-        {
-            get
-            {
-                return _error;
-            }
-            set
-            {
-                _error = value;
-            }
-        }
-
-        public bool Enabled
-        {
-            get
-            {
-                return _enabled;
-            }
-            set
-            {
-                _enabled = value;
-            }
-        }
-
+        /// <summary>
+        /// The name of this component
+        /// </summary>
         public string ComponentName
         {
             get
             {
                 Assembly thisAsm = this.GetType().Assembly;
                 object[] attrs = thisAsm.GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
-                _componentName = ((AssemblyTitleAttribute)attrs[0]).Title;
-                return _componentName;
+                string componentName = ((AssemblyTitleAttribute)attrs[0]).Title;
+                return componentName;
             }
-
         }
 
+        /// <summary>
+        /// The version of this component
+        /// </summary>
         public string ComponentVersion
         {
             get
             {
-                _componentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-                return _componentVersion;
-            }
-
-        }
-
-        public string JSONData
-        {
-            get
-            {
-                return _json.ToString();
-            }
-
-        }
-
-        private Services _services;
-
-        public Services Services
-        {
-            get
-            {
-                if (_services == null)
-                    _services = new Services(this);
-                return _services;
-            }
-            private set { _services = value; }
-        }
-
-
-
-        private Cache _cache;
-        internal Cache Cache
-        {
-            get
-            {
-                if (_cache == null)
-                    _cache = new Cache();
-                return _cache;
+                string componentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                return componentVersion;
             }
         }
 
-        private CurrentUser _user;
+        /// <summary>
+        /// The service data
+        /// </summary>
+        public Services Services { get; private set; }
 
-        internal CurrentUser User
+
+        /// <summary>
+        /// Main constructor
+        /// </summary>
+        public Watcher()
         {
-            get
-            {
-                if (_user == null)
-                    _user = new CurrentUser();
-                return _user;
-            }
+            _objectLock = new object();
+            _json = new List<string>();
+            Services = new Services();
+            Enabled = true;
         }
 
-
-        internal void CheckApplicationCorrectness()
-        {
-            if (string.IsNullOrEmpty(ApplicationId.Trim()))
-                throw new Exception("You must specify an non-empty application ID");
-            else if (!Enabled)
-                throw new InvalidOperationException("The application is stopped or not enabled");
-        }
-
-        #endregion
         /// <summary>
         /// Starts the application tracking.
         /// </summary>
-        /// <param name="ApplicationId">
+        /// <param name="applicationId">
         /// Your app ID. You can get it at http://analytics.deskmetrics.com/
         /// </param>
-        /// <param name="ApplicationVersion">
+        /// <param name="applicationVersion">
         /// Your app version.
         /// </param>
-        public void Start(string ApplicationId, string ApplicationVersion)
+        public void Start(string applicationId, string applicationVersion)
         {
-            this.ApplicationId = ApplicationId;
-            this.ApplicationVersion = ApplicationVersion;
+            if (applicationId == null || applicationId.Trim() == string.Empty)
+                throw new ArgumentException("You must specify an non-empty application ID");
+            if (applicationVersion == null || applicationVersion.Trim() == string.Empty)
+                throw new ArgumentException("You must specify an non-empty application version");
 
-            _sessionGUID = null;
-            Debug.WriteLine("ss: " + _sessionGUID);
+            lock (_objectLock)
+            {
+                if (Started)
+                    throw new InvalidOperationException("Start has already been called");
 
-            CheckApplicationCorrectness();
+                CheckIfEnabled();
 
-            lock (ObjectLock)
-                if (Enabled)
-                    StartAppJson();
-            _started = true;
-            //SendDataAsync();
-        }
+                _applicationId = applicationId;
+                _applicationVersion = applicationVersion;
 
-        private void StartAppJson()
-        {
-            var startjson = new StartAppJson(this);
-            JSON.Add(JsonBuilder.GetJsonFromHashTable(startjson.GetJsonHashTable()));
-        }
+                _sessionGUID = Util.GetNewSessionID();
+                _userGUID = Util.GetCurrentUserID();
+                _cache = new Cache(_applicationId);
+                
+                ResetFlowNumber();
 
-        private void TryInitializeStop()
-        {
-            if (StopThread == null)
-                StopThread = new Thread(_StopThreadFunc);
-        }
+                AddCachedData();
+                AddStartJson();
 
-        private bool IsStopThreadInitialized()
-        {
-            return StopThread != null && !StopThread.IsAlive;
-        }
-
-        private void RunStopThread()
-        {
-            StopThread = new Thread(_StopThreadFunc);
-            StopThread.Name = "StopSender";
-            StopThread.Start();
+                Started = true;
+            }
         }
 
         /// <summary>
@@ -304,64 +173,33 @@ namespace DeskMetrics
         /// </summary>
         public void Stop()
         {
-            CheckApplicationCorrectness();
-            lock (ObjectLock)
+            lock (_objectLock)
             {
-                TryInitializeStop();
-                if (IsStopThreadInitialized())
-                    RunStopThread();
-            }
-        }
+                if (Started == false)
+                    throw new InvalidOperationException("The component has NOT been started");
 
-        private string GenerateStopJson()
-        {
-            var json = new StopAppJson();
-            JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
-            string SingleJSON = JsonBuilder.GetJsonFromList(JSON);
-            return SingleJSON;
-        }
+                CheckIfEnabled();
 
-        private string AppendCacheDataToJson(string json)
-        {
-            string CacheData = Cache.GetCacheData();
-            if (!string.IsNullOrEmpty(CacheData))
-                json = json + "," + CacheData;
-            return json;
-        }
-
-        private void _StopThreadFunc()
-        {
-            lock (ObjectLock)
-            {
-                CheckApplicationCorrectness();
-                JSON.Add(AppendCacheDataToJson(GenerateStopJson()));
-                try
-                {
-                    Services.PostData(Settings.ApiEndpoint, JsonBuilder.GetJsonFromList(JSON));
-                    JSON.Clear();
-                    Cache.Delete();
-                }
-                catch (Exception)
-                {
-                    Cache.Save(JSON);
-                }
+                _stopThread = new Thread(_StopThreadFunc);
+                _stopThread.Name = "StopSender";
+                _stopThread.Start();
             }
         }
 
         /// <summary>
         /// Register an event occurence
         /// </summary>
-        /// <param name="EventCategory">EventCategory Category</param>
+        /// <param name="eventCategory">EventCategory Category</param>
         /// <param name="eventName">EventCategory Name</param>
-        public void TrackEvent(string EventCategory, string EventName)
+        public void TrackEvent(string eventCategory, string eventName)
         {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
                 if (Started)
                 {
-                    CheckApplicationCorrectness();
-                    var json = new EventJson(EventCategory, EventName, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    CheckIfEnabled();
+                    var json = new EventJson(_sessionGUID, eventCategory, eventName, GetFlowNumber());
+                    _json.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
             }
         }
@@ -369,27 +207,49 @@ namespace DeskMetrics
         /// <summary>
         /// Tracks an event related to time and intervals
         /// </summary>
-        /// <param name="EventCategory">
+        /// <param name="eventCategory">
         /// The event category
         /// </param>
-        /// <param name="EventName">
+        /// <param name="eventName">
         /// The event name
         /// </param>
-        /// <param name="EventTime">
+        /// <param name="eventTime">
         /// The event duration 
         /// </param>
-        /// <param name="Completed">
+        /// <param name="completed">
         /// True if the event was completed.
         /// </param>
-        public void TrackEventPeriod(string EventCategory, string EventName, int EventTime, bool Completed)
+        public void TrackEventPeriod(string eventCategory, string eventName, int eventTime, bool completed)
         {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
                 if (Started)
                 {
-                    CheckApplicationCorrectness();
-                    var json = new EventPeriodJson(EventCategory, EventName, GetFlowNumber(), EventTime, Completed);
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    CheckIfEnabled();
+                    var json = new EventPeriodJson(_sessionGUID, eventCategory, eventName, GetFlowNumber(), eventTime, completed);
+                    _json.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Tracks an exception
+        /// </summary>
+        /// <param name="exception">
+        /// The exception object to be tracked
+        /// </param>
+        public void TrackException(Exception exception)
+        {
+            if (exception == null)
+                throw new ArgumentNullException("exception");
+
+            lock (_objectLock)
+            {
+                if (Started)
+                {
+                    CheckIfEnabled();
+                    var json = new ExceptionJson(_sessionGUID, exception, GetFlowNumber());
+                    _json.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
             }
         }
@@ -405,14 +265,13 @@ namespace DeskMetrics
         /// </param>
         public void TrackInstall(string version, string appid)
         {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
-                var json = new InstallJson(version);
-                ApplicationId = appid;
-                _started = true;
+                string installSessionGUID = Util.GetNewSessionID();
+                var json = new InstallJson(installSessionGUID, version, GetFlowNumber());
                 try
                 {
-                    Services.SendData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    Services.PostData(appid, JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
                 catch (WebException)
                 {
@@ -420,6 +279,7 @@ namespace DeskMetrics
                 }
             }
         }
+
         /// <summary>
         /// Tracks an uninstall
         /// </summary>
@@ -431,14 +291,13 @@ namespace DeskMetrics
         /// </param>
         public void TrackUninstall(string version, string appid)
         {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
-                var json = new UninstallJson(version);
-                ApplicationId = appid;
-                _started = true;
+                string uninstallSessionGUID = Util.GetNewSessionID();
+                var json = new UninstallJson(uninstallSessionGUID, version, GetFlowNumber());
                 try
                 {
-                    Services.SendData(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    Services.PostData(appid, JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
                 catch (WebException)
                 {
@@ -446,77 +305,28 @@ namespace DeskMetrics
                 }
             }
         }
-
-        /// <summary>
-        /// Tracks an exception
-        /// </summary>
-        /// <param name="ApplicationException">
-        /// The exception object to be tracked
-        /// </param>
-        public void TrackException(Exception ApplicationException)
-        {
-            lock (ObjectLock)
-            {
-                if (Started && ApplicationException != null)
-                {
-                    CheckApplicationCorrectness();
-                    var json = new ExceptionJson(ApplicationException, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
-                }
-            }
-        }
-
-        /// <summary>
-        /// </summary>
-        void IDisposable.Dispose()
-        {
-            try
-            {
-                this.Stop();
-            }
-            catch (Exception e)
-            {
-                _error = e.Message;
-            }
-        }
-
-        protected int GetFlowNumber()
-        {
-            lock (ObjectLock)
-            {
-                try
-                {
-                    _flowglobalnumber = _flowglobalnumber + 1;
-                    return _flowglobalnumber;
-                }
-                catch
-                {
-                    return 0;
-                }
-            }
-        }
-
+        
         /// <summary>
         /// Tracks an event with custom value
         /// </summary>
-        /// <param name="EventCategory">
+        /// <param name="eventCategory">
         /// The event category
         /// </param>
-        /// <param name="EventName">
+        /// <param name="eventName">
         /// The event name
         /// </param>
-        /// <param name="EventValue">
+        /// <param name="eventValue">
         /// The custom value
         /// </param>
-        public void TrackEventValue(string EventCategory, string EventName, string EventValue)
+        public void TrackEventValue(string eventCategory, string eventName, string eventValue)
         {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
                 if (Started)
                 {
-                    CheckApplicationCorrectness();
-                    var json = new EventValueJson(EventCategory, EventName, EventValue, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    CheckIfEnabled();
+                    var json = new EventValueJson(_sessionGUID, eventCategory, eventName, eventValue, GetFlowNumber());
+                    _json.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
             }
         }
@@ -524,21 +334,21 @@ namespace DeskMetrics
         /// <summary>
         /// Tracks custom data
         /// </summary>
-        /// <param name="CustomDataName">
+        /// <param name="customDataName">
         /// The custom data name
         /// </param>
-        /// <param name="CustomDataValue">
+        /// <param name="customDataValue">
         /// The custom data value
         /// </param>
-        public void TrackCustomData(string CustomDataName, string CustomDataValue)
+        public void TrackCustomData(string customDataName, string customDataValue)
         {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
                 if (Started)
                 {
-                    CheckApplicationCorrectness();
-                    var json = new CustomDataJson(CustomDataName, CustomDataValue, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    CheckIfEnabled();
+                    var json = new CustomDataJson(_sessionGUID, customDataName, customDataValue, GetFlowNumber());
+                    _json.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
             }
         }
@@ -546,98 +356,231 @@ namespace DeskMetrics
         /// <summary>
         /// Tracks a log
         /// </summary>
-        /// <param name="Message">
+        /// <param name="message">
         /// The log message
         /// </param>
-        public void TrackLog(string Message)
+        public void TrackLog(string message)
         {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
                 if (Started)
                 {
-                    CheckApplicationCorrectness();
-                    var json = new LogJson(Message, GetFlowNumber());
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    CheckIfEnabled();
+                    var json = new LogJson(_sessionGUID, message, GetFlowNumber());
+                    _json.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
                 }
             }
         }
-
-
+        
         /// <summary>
         /// Try to track real time customized data and caches it to send later if any network error occurs.
         /// </summary>
-        /// <param name="CustomDataName">
+        /// <param name="customDataName">
         /// A <see cref="System.String"/>
         /// </param>
-        /// <param name="CustomDataValue">
+        /// <param name="customDataValue">
         /// A <see cref="System.String"/>
         /// </param>
         /// <returns>
         /// True if it was sended in real time, false otherwise
         /// </returns>
-        public bool TrackCachedCustomDataR(string CustomDataName, string CustomDataValue)
+        public bool TrackCachedCustomDataR(string customDataName, string customDataValue)
         {
-            try
+            lock (_objectLock)
             {
-                TrackCustomDataR(CustomDataName, CustomDataValue);
-            }
-            catch (Exception)
-            {
-                lock (ObjectLock)
+                if (Started)
                 {
-                    var json = new CustomDataRJson(CustomDataName, CustomDataValue, GetFlowNumber(), ApplicationId, ApplicationVersion);
-                    JSON.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
-                    return false;
+                    CheckIfEnabled();
+
+                    bool sentInRealTime = TrackCustomDataR(customDataName, customDataValue);
+                    if(sentInRealTime == false)
+                    {
+                        var json = new CustomDataRJson(_sessionGUID, customDataName, customDataValue, GetFlowNumber(), _applicationId, _applicationVersion);
+                        _json.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                    }
+                    return sentInRealTime;
                 }
+                else
+                    return false;
             }
-            return true;
         }
 
         /// <summary>
         /// Tracks a custom data without cache support
         /// </summary>
-        /// <param name="CustomDataName">
+        /// <param name="customDataName">
         /// Self-explanatory ;)
         /// </param>
-        /// <param name="CustomDataValue">
+        /// <param name="customDataValue">
         /// Self-explanatory ;)
         /// </param>
         /// <returns>
-        /// 
+        /// True if it was sent in real time, false otherwise
         /// </returns>
-        public void TrackCustomDataR(string CustomDataName, string CustomDataValue)
+        public bool TrackCustomDataR(string customDataName, string customDataValue)
         {
-            lock (ObjectLock)
+            lock (_objectLock)
             {
                 if (Started)
                 {
-                    CheckApplicationCorrectness();
+                    CheckIfEnabled();
                     try
                     {
-                        var json = new CustomDataRJson(CustomDataName, CustomDataValue, GetFlowNumber(), ApplicationId, ApplicationVersion);
-                        Services.PostData(Settings.ApiEndpoint, JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                        var json = new CustomDataRJson(_sessionGUID, customDataName, customDataValue, GetFlowNumber(), _applicationId, _applicationVersion);
+                        Services.PostData(_applicationId, JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+                        return true;
                     }
                     catch (WebException)
                     {
-                        // only hide unhandled exception due no internet connection
+                        return false;
                     }
+                }
+                else
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Sends the data collected so far.
+        /// If the data could not be sent it is saved to cache.
+        /// </summary>
+        public void SendDataAsync()
+        {
+            lock (_objectLock)
+            {
+                if (Started)
+                {
+                    CheckIfEnabled();
+
+                    Thread thread = new Thread(() =>
+                    {
+                        lock (_objectLock)
+                        {
+                            string jsonText = JsonBuilder.GetJsonFromList(_json);
+                            try
+                            {
+                                Services.PostData(_applicationId, jsonText);
+                                _json.Clear();
+                                _cache.Delete();
+                            }
+                            catch (Exception)
+                            {
+                                _cache.Save(jsonText);
+                            }
+                        }
+                    });
+                    thread.Start();
                 }
             }
         }
 
-        public void SendDataAsync()
+        /// <summary>
+        /// Adds the start data to the list
+        /// </summary>
+        private void AddStartJson()
         {
-            lock (ObjectLock)
+            var startjson = new StartAppJson(_sessionGUID, _applicationVersion, _userGUID);
+            _json.Add(JsonBuilder.GetJsonFromHashTable(startjson.GetJsonHashTable()));
+        }
+
+        /// <summary>
+        /// Adds the stop data to the list
+        /// </summary>
+        private void AddStopJson()
+        {
+            var json = new StopAppJson(_sessionGUID);
+            _json.Add(JsonBuilder.GetJsonFromHashTable(json.GetJsonHashTable()));
+        }
+
+        /// <summary>
+        /// Adds the caches data (if exists) to the list
+        /// </summary>
+        private void AddCachedData()
+        {
+            string cachedData = _cache.GetCacheData();
+            //Checks if there is no cache file or it is empty
+            if (string.IsNullOrEmpty(cachedData))
+                return;
+            //Checks if the cache file content is valid
+            bool success = false;
+            Json.Json.JsonDecode("[" + cachedData + "]", ref success);
+            if (success == false)
+                return;
+            //Adds the file content to the json list
+            _json.Add(cachedData);
+        }
+
+        /// <summary>
+        /// Thread which sends the data on application exit
+        /// </summary>
+        private void _StopThreadFunc()
+        {
+            lock (_objectLock)
             {
+                AddStopJson();
+
+                string jsonText = JsonBuilder.GetJsonFromList(_json);
                 try
                 {
-                    Services.SendDataAsync(JsonBuilder.GetJsonFromList(JSON));                    
+                    Services.PostData(_applicationId, jsonText);
+                    _json.Clear();
+                    _cache.Delete();
                 }
-                catch (WebException)
+                catch (Exception)
                 {
-                    // only hide unhandled exception due no internet connection
+                    _cache.Save(jsonText);
                 }
+
+                Started = false;
             }
+        }
+
+        /// <summary>
+        /// Checks if the component is enabled, if not raises an exception
+        /// </summary>
+        private void CheckIfEnabled()
+        {
+            if (!Enabled)
+                throw new InvalidOperationException("The component is not enabled");
+        }
+        
+        /// <summary>
+        /// Resets the Flow number
+        /// </summary>
+        private void ResetFlowNumber()
+        {
+            _flowNumber = 1;
+        }
+
+        /// <summary>
+        /// Gets the next value to use as Flow number
+        /// </summary>
+        /// <returns></returns>
+        private int GetFlowNumber()
+        {
+            int n = _flowNumber;
+            _flowNumber++;
+            return n;
+        }
+
+        /// <summary>
+        /// Disposes this component
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            //Do not finalize this object as it is already disposed
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Disposes this component
+        /// </summary>
+        /// <param name="disposing">True if manually disposing, False if called by the framework</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (Started && Enabled)
+                Stop();
         }
     }
 }

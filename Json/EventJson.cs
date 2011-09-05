@@ -19,15 +19,16 @@ using System.Collections;
 
 namespace DeskMetrics.Json
 {
-	public class EventJson : BaseJson
+	class EventJson : BaseJson
     {
-        protected string Category;
-        protected string Name;
-        protected int Flow;
+        public string Category { get; private set; }
+        public string Name { get; private set; }
+        public int Flow { get; private set; }
 
-        public EventJson(string category, string name, int flow)
-            : base(EventType.Event, BaseJson.Session)
+        public EventJson(string session, string category, string name, int flow)
+            : base(session)
         {
+            Type = EventType.Event;
             Category = category;
             Name = name;
             Flow = flow;

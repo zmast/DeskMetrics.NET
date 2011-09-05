@@ -19,13 +19,15 @@ using System.Collections;
 
 namespace DeskMetrics.Json
 {
-	public class ExceptionJson : BaseJson
+	class ExceptionJson : BaseJson
     {
-        protected Exception Exception;
-        protected int Flow;
-        public ExceptionJson(Exception e,int flow)
-            : base(EventType.Exception, BaseJson.Session)
+        public Exception Exception { get; private set; }
+        public int Flow { get; private set; }
+
+        public ExceptionJson(string session, Exception e, int flow)
+            : base(session)
         {
+            Type = EventType.Exception;
             Exception = e;
             Flow = flow;
         }

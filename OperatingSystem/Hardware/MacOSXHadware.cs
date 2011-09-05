@@ -18,7 +18,7 @@ using System;
 using System.Text.RegularExpressions;
 namespace DeskMetrics.OperatingSystem.Hardware
 {
-	public class MacOSXHadware:UnixHardware
+	class MacOSXHadware:UnixHardware
 	{
 		public MacOSXHadware ()
 		{

@@ -22,7 +22,7 @@ using DeskMetrics.OperatingSystem;
 
 namespace DeskMetrics.Json
 {
-    public class JsonBuilder
+    class JsonBuilder
     {
         public static string GetJsonFromHashTable(Hashtable hash)
         {
