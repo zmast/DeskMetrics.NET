@@ -1,3 +1,27 @@
+About this fork
+===============
+
+This fork is the result of a massive set of changes.
+Here are the biggest changes:
+
+ - Resolved bug that sent twice the same data on Stop()
+ - Fixed cache management when using SendAsync
+ - Cleaned up the messy session-id handling between classes
+ - Simplified cache and user guid management
+ - Check for corrupted cache content
+ - Removed some class circular dependencies
+ - Documented the public method/properties
+ - Made internal thoose classes not supposed to be used outside the library
+ - Changed variable names to follow standard C# naming conventions
+ - Took advantage of C# 3.0 auto properies
+
+
+Please note that this is NOT the official library and while it should be completely compatible it was not tested enterily.
+
+For the official library see [deskmetrics/DeskMetrics.NET](https://github.com/deskmetrics/DeskMetrics.NET)
+
+
+
 DeskMetrics.NET -- .NET assembly for DeskMetrics Analytics
 ===========================================================
 
